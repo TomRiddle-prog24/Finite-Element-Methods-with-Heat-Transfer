@@ -1,0 +1,29 @@
+load "iovtk"
+int L1=6;
+int L2=2; 
+int size=120;        //higher size produces a very fine mesh
+mesh Mesh; 
+int d=1;
+border b1(t=0, 1){x=L1*t; y=0; label=d;};
+border b2(t=0, 1){x=L1; y=L2*t;};
+border b3(t=0, 1){x=L1-L1*t; y=L2; label=d;};
+border b4(t=0, 1){x=0; y=L2-L2*t;};
+
+Mesh= buildmesh(b1(size)+b2(size)+b3(size)+b4(size));
+
+//Dirichlet BCs
+int T1=30+273; // (on the walls b1, b3)
+int T2=50+273; // (on the walls along b2)
+int T3=20+273; // (on the walls along b4)
+
+fespace Space0(Mesh, P1); 
+Space0 T, w;
+
+solve SDHTS(T,w)
+= int2d(Mesh)((dx(w)*dx(T)+dy(w)*dy(T)))
+  +on(b2, T=T2)
+  +on(b4, T=T3)
+      ;
+
+int[int] orderOut=[1];
+savevtk("1D cond.vtk", Mesh, T, dataname="Temperature", order=orderOut);
