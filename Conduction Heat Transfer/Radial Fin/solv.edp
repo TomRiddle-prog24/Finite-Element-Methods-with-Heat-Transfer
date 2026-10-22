@@ -1,0 +1,17 @@
+load "iovtk"
+load "gmsh"
+mesh3 mesh1=gmshload3("/home/saltyroboticist/Desktop/FEM/Heat Transfer FEM/Conduction/Radial Fin/mesh13.msh"); 
+lockOrientation=true; 
+plot(mesh1, wait=1);
+int k=110; //cond 110W/mk=k_xx=k_yy
+int h=18; 
+fespace space0(mesh1, P1);
+space0 T, w, Ta; 
+solve solv(T,w)
+= int3d(mesh1)((dx(w)*dx(T)+dy(w)*dy(T)+dz(w)*dz(T))*k)
+    +int2d(mesh1, 151)(w*h*(T))
+    +on(152, T=(100-45));
+
+int[int] out=[1, 1];
+Ta=T+45; 
+savevtk("soln.vtk", mesh1, T, Ta, dataname="DimlessTemp, Temp", order=out); 
